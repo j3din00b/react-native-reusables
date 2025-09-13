@@ -1,10 +1,11 @@
-import { Effect, Layer } from "effect"
 import { CliOptions } from "@cli/contexts/cli-options.js"
-import { Doctor } from "@cli/services/commands/doctor.js"
-import { ProjectConfig } from "../project-config.js"
-import { Prompt } from "@effect/cli"
 import { PROJECT_MANIFEST } from "@cli/project-manifest.js"
+import { Doctor } from "@cli/services/commands/doctor.js"
 import { runCommand } from "@cli/utils/run-command.js"
+import { Prompt } from "@effect/cli"
+import { Effect, Layer } from "effect"
+import { PackageManager } from "../package-manager.js"
+import { ProjectConfig } from "../project-config.js"
 
 type AddOptions = {
   cwd: string
@@ -16,9 +17,11 @@ type AddOptions = {
 }
 
 class Add extends Effect.Service<Add>()("Add", {
+  dependencies: [PackageManager.Default],
   effect: Effect.gen(function* () {
     const doctor = yield* Doctor
     const projectConfig = yield* ProjectConfig
+    const packageManager = yield* PackageManager
 
     return {
       run: (options: AddOptions) =>
@@ -60,11 +63,20 @@ class Add extends Effect.Service<Add>()("Add", {
 
           const shadcnOptions = toShadcnOptions(options)
 
-          const commandArgs = ["--yes", "shadcn@latest", "add", ...shadcnOptions, ...componentUrls]
+          const binaryRunner = yield* packageManager.getBinaryRunner(options.cwd)
 
-          yield* Effect.logDebug(`Running command: npx ${commandArgs.join(" ")}`)
+          const commandArgs = [
+            binaryRunner[1],
+            "--yes",
+            "shadcn@latest",
+            "add",
+            ...shadcnOptions,
+            ...componentUrls
+          ].filter((option) => option !== undefined)
 
-          yield* runCommand("npx", commandArgs, {
+          yield* Effect.logDebug(`Running command: ${binaryRunner[0]} ${commandArgs.join(" ")}`)
+
+          yield* runCommand(binaryRunner[0], commandArgs, {
             cwd: options.cwd,
             stdio: "inherit"
           })
