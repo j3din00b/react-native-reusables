@@ -49,7 +49,7 @@ class Add extends Effect.Service<Add>()("Add", {
           yield* Effect.logDebug(`Selected components: ${components.join(", ")}`)
 
           const baseUrl =
-            process.env.NODE_ENV === "development"
+            process.env.INTERNAL_ENV === "development"
               ? "http://localhost:3000/local/r/new-york"
               : "https://reactnativereusables.com/r/new-york"
 

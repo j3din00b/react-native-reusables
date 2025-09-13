@@ -134,7 +134,7 @@ class Doctor extends Effect.Service<Doctor>()("Doctor", {
 
             if (dependenciesToInstall.length > 0) {
               yield* Effect.logDebug(`Installing ${dependenciesToInstall.join(", ")}`)
-              if (process.env.NODE_ENV !== "development") {
+              if (process.env.INTERNAL_ENV !== "development") {
                 spinner.start("Installing dependencies")
                 yield* runCommand("npx", ["expo", "install", ...dependenciesToInstall], {
                   cwd: options.cwd
@@ -164,7 +164,7 @@ class Doctor extends Effect.Service<Doctor>()("Doctor", {
 
             if (devDependenciesToInstall.length > 0) {
               yield* Effect.logDebug(`Installing ${devDependenciesToInstall.join(", ")}`)
-              if (process.env.NODE_ENV !== "development") {
+              if (process.env.INTERNAL_ENV !== "development") {
                 spinner.start("Installing dev dependencies")
                 yield* runCommand("npx", ["expo", "install", ...devDependenciesToInstall], {
                   cwd: options.cwd
