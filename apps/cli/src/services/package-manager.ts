@@ -1,9 +1,15 @@
 import { Effect } from "effect"
 import { detect } from "package-manager-detector"
 
-const PACKAGE_MANAGERS = ["npm", "bun", "pnpm", "yarn"] as const
+const PACKAGE_MANAGERS = ["npm", "bun", "pnpm", "yarn", "yarn@berry"] as const
 
-const BINARY_RUNNERS = { npm: ["npx"], bun: ["bunx", "--bun"], pnpm: ["pnpm", "dlx"], yarn: ["yarn"] } as const
+const BINARY_RUNNERS = {
+  npm: ["npx", "--yes"],
+  bun: ["bunx", "--bun", "--yes"],
+  pnpm: ["pnpm", "dlx", "--yes"],
+  yarn: ["yarn", "--yes"],
+  "yarn@berry": ["yarn", "dlx"]
+} as const
 
 const detectPackageManager = (cwd: string) =>
   Effect.tryPromise({
@@ -22,7 +28,7 @@ const getPackageManager = (cwd: string) =>
     if (!pm) {
       return "npm"
     }
-    const name = PACKAGE_MANAGERS.find((name) => pm.name.startsWith(name) || pm.agent.startsWith(name)) ?? "npm"
+    const name = PACKAGE_MANAGERS.find((name) => pm.agent.startsWith(name) || pm.name.startsWith(name)) ?? "npm"
     return name
   })
 const getBinaryRunner = (cwd: string) =>
