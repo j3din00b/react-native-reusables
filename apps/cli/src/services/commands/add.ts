@@ -60,7 +60,7 @@ class Add extends Effect.Service<Add>()("Add", {
 
           const shadcnOptions = toShadcnOptions(options)
 
-          const commandArgs = ["shadcn@latest", "add", ...shadcnOptions, ...componentUrls]
+          const commandArgs = ["--yes", "shadcn@latest", "add", ...shadcnOptions, ...componentUrls]
 
           yield* Effect.logDebug(`Running command: npx ${commandArgs.join(" ")}`)
 
