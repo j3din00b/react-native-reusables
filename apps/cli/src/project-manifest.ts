@@ -60,7 +60,7 @@ const FILE_CHECKS: Array<FileCheck> = [
       },
       {
         content: ["inlineRem", "16"],
-        message: "The inlineRem is missing",
+        message: "The 'inlineRem: 16' is missing",
         docs: "https://reactnativereusables.com/docs/installation/manual#update-the-default-inlined-rem-value"
       }
     ]
