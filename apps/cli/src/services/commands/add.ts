@@ -66,8 +66,7 @@ class Add extends Effect.Service<Add>()("Add", {
           const binaryRunner = yield* packageManager.getBinaryRunner(options.cwd)
 
           const commandArgs = [
-            binaryRunner[1],
-            "--yes",
+            ...binaryRunner.slice(1),
             "shadcn@latest",
             "add",
             ...shadcnOptions,
