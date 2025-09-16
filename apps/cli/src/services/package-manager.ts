@@ -4,10 +4,10 @@ import { detect } from "package-manager-detector"
 const PACKAGE_MANAGERS = ["npm", "bun", "pnpm", "yarn@berry", "yarn"] as const
 
 const BINARY_RUNNERS = {
-  npm: ["npx", "--yes"],
-  bun: ["bunx", "--bun", "--yes"],
-  pnpm: ["pnpm", "dlx", "--yes"],
-  yarn: ["yarn", "--yes"],
+  npm: ["npx"],
+  bun: ["bunx", "--bun"],
+  pnpm: ["pnpm", "dlx"],
+  yarn: ["yarn"],
   "yarn@berry": ["yarn", "dlx"]
 } as const
 
