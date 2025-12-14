@@ -9,6 +9,26 @@ import { VercelOssBadge } from '@docs/components/vercel-oss-badge';
 import { ClerkLogo } from '@docs/components/clerk-logo';
 import { DownloadAppBanner } from '@docs/components/download-app-banner';
 
+## December 2025 - Uniwind Integration
+
+React Native Reusables now has full support for [Uniwind](https://uniwind.dev).
+
+### New Uniwind Template [#december-2025-uniwind-template]
+
+You can now start new projects with Uniwind using the minimal-uniwind template:
+
+<CommandTabs args={["init", "-t", "minimal-uniwind"]} />
+
+### Manual Installation Choice [#december-2025-manual-installation]
+
+When selecting "Manual" in the installation, you can now choose between Nativewind and Uniwind for your styling solution.
+
+### Automatic Uniwind Detection [#december-2025-uniwind-detection]
+
+When using the `add` command, the CLI will automatically add the Uniwind version of components when it detects a `uniwind-types.d.ts` file in your project.
+
+<CommandTabs args={["add", "[...components]"]} />
+
 ## August 2025 - Total Rewrite
 
 New CLI. New docs. New registry. New showcase app. New sponsors.
