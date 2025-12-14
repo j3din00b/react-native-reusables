@@ -184,6 +184,8 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
           missingIncludes.push({ ...include, fileName: customFileChecks.css.name })
         }
 
+        let stylingLibrary = "nativewind"
+
         // Check Nativewind env or Uniwind types file
         if (componentJson.tsx !== false) {
           const missingTypeFiles: Array<CustomFileCheck> = []
@@ -221,6 +223,7 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
           }
 
           if (uniwindTypesContent) {
+            stylingLibrary = "uniwind"
             for (const include of customFileChecks.uniwindTypes.includes) {
               if (include.content.every((str) => uniwindTypesContent.includes(str))) {
                 yield* Effect.logDebug(
@@ -240,41 +243,45 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
           }
         }
 
-        // Check Tailwind config
-        const tailwindConfigPaths = [componentJson.tailwind.config, "tailwind.config.js", "tailwind.config.ts"].filter(
-          (p) => p != null
-        )
-        const tailwindConfigContent = yield* retryWith(
-          (filePath: string) =>
-            Effect.gen(function* () {
-              const content = yield* fs.readFileString(filePath)
-              yield* Effect.logDebug(`${logSymbols.success} ${customFileChecks.tailwindConfig.name} found`)
-              return content
-            }),
-          tailwindConfigPaths.map((p) => path.join(options.cwd, p)) as [string, ...Array<string>]
-        ).pipe(
-          Effect.catchAll(() =>
-            Effect.fail(
-              new RequiredFileError({
-                file: "Tailwind config",
-                message:
-                  "Tailwind config not found, Please follow the instructions at https://www.nativewind.dev/docs/getting-started/installation#installation-with-expo"
-              })
+        if (stylingLibrary === "nativewind") {
+          // Check Tailwind config
+          const tailwindConfigPaths = [
+            componentJson.tailwind.config,
+            "tailwind.config.js",
+            "tailwind.config.ts"
+          ].filter((p) => p != null)
+          const tailwindConfigContent = yield* retryWith(
+            (filePath: string) =>
+              Effect.gen(function* () {
+                const content = yield* fs.readFileString(filePath)
+                yield* Effect.logDebug(`${logSymbols.success} ${customFileChecks.tailwindConfig.name} found`)
+                return content
+              }),
+            tailwindConfigPaths.map((p) => path.join(options.cwd, p)) as [string, ...Array<string>]
+          ).pipe(
+            Effect.catchAll(() =>
+              Effect.fail(
+                new RequiredFileError({
+                  file: "Tailwind config",
+                  message:
+                    "Tailwind config not found, Please follow the instructions at https://www.nativewind.dev/docs/getting-started/installation#installation-with-expo"
+                })
+              )
             )
           )
-        )
 
-        for (const include of customFileChecks.tailwindConfig.includes) {
-          if (include.content.every((str) => tailwindConfigContent.includes(str))) {
+          for (const include of customFileChecks.tailwindConfig.includes) {
+            if (include.content.every((str) => tailwindConfigContent.includes(str))) {
+              yield* Effect.logDebug(
+                `${logSymbols.success} ${customFileChecks.tailwindConfig.name} has ${include.content.join(", ")}`
+              )
+              continue
+            }
             yield* Effect.logDebug(
-              `${logSymbols.success} ${customFileChecks.tailwindConfig.name} has ${include.content.join(", ")}`
+              `${logSymbols.error} ${customFileChecks.tailwindConfig.name} missing ${include.content.join(", ")}`
             )
-            continue
+            missingIncludes.push({ ...include, fileName: customFileChecks.tailwindConfig.name })
           }
-          yield* Effect.logDebug(
-            `${logSymbols.error} ${customFileChecks.tailwindConfig.name} missing ${include.content.join(", ")}`
-          )
-          missingIncludes.push({ ...include, fileName: customFileChecks.tailwindConfig.name })
         }
 
         // Check theme file
