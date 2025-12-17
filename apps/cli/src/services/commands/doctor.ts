@@ -33,6 +33,13 @@ class Doctor extends Effect.Service<Doctor>()("Doctor", {
     const path = yield* Path.Path
     const requiredFileChecker = yield* RequiredFilesChecker
     const spinner = yield* Spinner
+    const projectConfig = yield* ProjectConfig
+
+    const stylingLibrary = yield* projectConfig.getStylingLibrary()
+
+    console.log(
+      `\x1b[2m${logSymbols.info} Styling Library: ${stylingLibrary === "uniwind" ? "Uniwind" : "Nativewind"}\x1b[0m`
+    )
 
     const checkRequiredDependencies = ({
       dependencies,
@@ -92,7 +99,7 @@ class Doctor extends Effect.Service<Doctor>()("Doctor", {
         Effect.gen(function* () {
           yield* Effect.logDebug(`Doctor options: ${JSON.stringify(options, null, 2)}`)
           const { uninstalledDependencies, uninstalledDevDependencies } = yield* checkRequiredDependencies({
-            dependencies: PROJECT_MANIFEST.dependencies,
+            dependencies: PROJECT_MANIFEST.dependencies[stylingLibrary],
             devDependencies: PROJECT_MANIFEST.devDependencies
           })
 
@@ -100,7 +107,8 @@ class Doctor extends Effect.Service<Doctor>()("Doctor", {
             customFileChecks: PROJECT_MANIFEST.customFileChecks,
             deprecatedFromLib: PROJECT_MANIFEST.deprecatedFromLib,
             deprecatedFromUi: PROJECT_MANIFEST.deprecatedFromUi,
-            fileChecks: PROJECT_MANIFEST.fileChecks
+            fileChecks: PROJECT_MANIFEST.fileChecks,
+            stylingLibrary
           })
 
           const result = {
@@ -217,7 +225,7 @@ interface Result {
   missingIncludes: Array<MissingInclude>
   uninstalledDependencies: Array<string>
   uninstalledDevDependencies: Array<string>
-  deprecatedFileResults: Array<Omit<FileCheck, "docs">>
+  deprecatedFileResults: Array<Omit<FileCheck, "docs" | "stylingLibraries">>
 }
 
 function analyzeResult(result: Result) {

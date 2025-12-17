@@ -1,7 +1,7 @@
 import { CliOptions } from "@cli/contexts/cli-options.js"
 import type { CustomFileCheck, FileCheck, FileWithContent, MissingInclude } from "@cli/project-manifest.js"
 import { PROJECT_MANIFEST } from "@cli/project-manifest.js"
-import { ProjectConfig, type StylingLibrary } from "@cli/services/project-config.js"
+import { ProjectConfig } from "@cli/services/project-config.js"
 import { retryWith } from "@cli/utils/retry-with.js"
 import { FileSystem, Path } from "@effect/platform"
 import { Data, Effect } from "effect"
@@ -19,13 +19,13 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
     const options = yield* CliOptions
     const projectConfig = yield* ProjectConfig
 
-    const checkFiles = (fileChecks: Array<FileCheck>) =>
+    const checkFiles = (fileChecks: Array<FileCheck>, stylingLibrary: "nativewind" | "uniwind") =>
       Effect.gen(function* () {
         const missingFiles: Array<FileCheck> = []
         const missingIncludes: Array<MissingInclude> = []
 
         const filesWithContent = yield* Effect.forEach(
-          fileChecks,
+          fileChecks.filter((file) => file.stylingLibraries.includes(stylingLibrary)),
           (file) =>
             retryWith(
               (filePath: string) =>
@@ -62,8 +62,8 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
       })
 
     const checkDeprecatedFiles = (
-      deprecatedFromLib: Array<Omit<FileCheck, "docs">>,
-      deprecatedFromUi: Array<Omit<FileCheck, "docs">>
+      deprecatedFromLib: Array<Omit<FileCheck, "docs" | "stylingLibraries">>,
+      deprecatedFromUi: Array<Omit<FileCheck, "docs" | "stylingLibraries">>
     ) =>
       Effect.gen(function* () {
         const componentJson = yield* projectConfig.getComponentJson()
@@ -142,7 +142,10 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
         return [...existingDeprecatedFromLibs, ...existingDeprecatedFromUi]
       })
 
-    const checkCustomFiles = (customFileChecks: Record<string, CustomFileCheck>) =>
+    const checkCustomFiles = (
+      customFileChecks: Record<string, CustomFileCheck>,
+      stylingLibrary: "nativewind" | "uniwind"
+    ) =>
       Effect.gen(function* () {
         const componentJson = yield* projectConfig.getComponentJson()
         const aliasForLib = componentJson.aliases.lib ?? `${componentJson.aliases.utils}/lib`
@@ -171,7 +174,10 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
           )
         )
 
-        for (const include of customFileChecks.css.includes) {
+        const cssShouldInclude =
+          stylingLibrary === "uniwind" ? customFileChecks.uniwindCss.includes : customFileChecks.css.includes
+
+        for (const include of cssShouldInclude) {
           if (include.content.every((str) => cssContent.includes(str))) {
             yield* Effect.logDebug(
               `${logSymbols.success} ${customFileChecks.css.name} has ${include.content.join(", ")}`
@@ -184,59 +190,61 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
           missingIncludes.push({ ...include, fileName: customFileChecks.css.name })
         }
 
-        let stylingLibrary: StylingLibrary = "nativewind"
-
         // Check Nativewind env or Uniwind types file
         if (componentJson.tsx !== false) {
           const missingTypeFiles: Array<CustomFileCheck> = []
-          const nativewindEnvContent = yield* fs
-            .readFileString(path.join(options.cwd, PROJECT_MANIFEST.nativewindEnvFile))
-            .pipe(
-              Effect.catchAll(() => {
-                missingTypeFiles.push(customFileChecks.nativewindEnv)
-                return Effect.succeed(null)
-              })
-            )
 
-          // Get uniwind dts path from metro config (supports custom dtsFile)
-          const uniwindDtsPath = yield* projectConfig.getUniwindDtsPath()
-          const uniwindTypesContent: string | null = uniwindDtsPath
-            ? yield* fs.readFileString(uniwindDtsPath).pipe(
-              Effect.catchAll(() => {
-                missingTypeFiles.push(customFileChecks.uniwindTypes)
-                return Effect.succeed(null)
-              })
-            )
-            : null
-
-          if (nativewindEnvContent) {
-            for (const include of customFileChecks.nativewindEnv.includes) {
-              if (include.content.every((str) => nativewindEnvContent.includes(str))) {
-                yield* Effect.logDebug(
-                  `${logSymbols.success} ${customFileChecks.nativewindEnv.name} has ${include.content.join(", ")}`
-                )
-                continue
-              }
-              yield* Effect.logDebug(
-                `${logSymbols.error} ${customFileChecks.nativewindEnv.name} missing ${include.content.join(", ")}`
+          if (stylingLibrary === "nativewind") {
+            const nativewindEnvContent = yield* fs
+              .readFileString(path.join(options.cwd, PROJECT_MANIFEST.nativewindEnvFile))
+              .pipe(
+                Effect.catchAll(() => {
+                  missingTypeFiles.push(customFileChecks.nativewindEnv)
+                  return Effect.succeed(null)
+                })
               )
-              missingIncludes.push({ ...include, fileName: customFileChecks.nativewindEnv.name })
+
+            if (nativewindEnvContent) {
+              for (const include of customFileChecks.nativewindEnv.includes) {
+                if (include.content.every((str) => nativewindEnvContent.includes(str))) {
+                  yield* Effect.logDebug(
+                    `${logSymbols.success} ${customFileChecks.nativewindEnv.name} has ${include.content.join(", ")}`
+                  )
+                  continue
+                }
+                yield* Effect.logDebug(
+                  `${logSymbols.error} ${customFileChecks.nativewindEnv.name} missing ${include.content.join(", ")}`
+                )
+                missingIncludes.push({ ...include, fileName: customFileChecks.nativewindEnv.name })
+              }
             }
           }
 
-          if (uniwindTypesContent) {
-            stylingLibrary = "uniwind"
-            for (const include of customFileChecks.uniwindTypes.includes) {
-              if (include.content.every((str) => uniwindTypesContent.includes(str))) {
-                yield* Effect.logDebug(
-                  `${logSymbols.success} ${customFileChecks.uniwindTypes.name} has ${include.content.join(", ")}`
+          if (stylingLibrary === "uniwind") {
+            // Get uniwind dts path from metro config (supports custom dtsFile)
+            const uniwindDtsPath = yield* projectConfig.getUniwindDtsPath()
+            const uniwindTypesContent: string | null = uniwindDtsPath
+              ? yield* fs.readFileString(uniwindDtsPath).pipe(
+                  Effect.catchAll(() => {
+                    missingTypeFiles.push(customFileChecks.uniwindTypes)
+                    return Effect.succeed(null)
+                  })
                 )
-                continue
+              : null
+
+            if (uniwindTypesContent) {
+              for (const include of customFileChecks.uniwindTypes.includes) {
+                if (include.content.every((str) => uniwindTypesContent.includes(str))) {
+                  yield* Effect.logDebug(
+                    `${logSymbols.success} ${customFileChecks.uniwindTypes.name} has ${include.content.join(", ")}`
+                  )
+                  continue
+                }
+                yield* Effect.logDebug(
+                  `${logSymbols.error} ${customFileChecks.uniwindTypes.name} missing ${include.content.join(", ")}`
+                )
+                missingIncludes.push({ ...include, fileName: customFileChecks.uniwindTypes.name })
               }
-              yield* Effect.logDebug(
-                `${logSymbols.error} ${customFileChecks.uniwindTypes.name} missing ${include.content.join(", ")}`
-              )
-              missingIncludes.push({ ...include, fileName: customFileChecks.uniwindTypes.name })
             }
           }
 
@@ -346,17 +354,19 @@ class RequiredFilesChecker extends Effect.Service<RequiredFilesChecker>()("Requi
         customFileChecks,
         deprecatedFromLib,
         deprecatedFromUi,
-        fileChecks
+        fileChecks,
+        stylingLibrary
       }: {
         fileChecks: Array<FileCheck>
         customFileChecks: Record<string, CustomFileCheck>
-        deprecatedFromLib: Array<Omit<FileCheck, "docs">>
-        deprecatedFromUi: Array<Omit<FileCheck, "docs">>
+        deprecatedFromLib: Array<Omit<FileCheck, "docs" | "stylingLibraries">>
+        deprecatedFromUi: Array<Omit<FileCheck, "docs" | "stylingLibraries">>
+        stylingLibrary: "nativewind" | "uniwind"
       }) =>
         Effect.gen(function* () {
           const [fileResults, customFileResults, deprecatedFileResults] = yield* Effect.all([
-            checkFiles(fileChecks),
-            checkCustomFiles(customFileChecks),
+            checkFiles(fileChecks, stylingLibrary),
+            checkCustomFiles(customFileChecks, stylingLibrary),
             checkDeprecatedFiles(deprecatedFromLib, deprecatedFromUi)
           ])
 

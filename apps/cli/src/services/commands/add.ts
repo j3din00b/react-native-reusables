@@ -4,7 +4,6 @@ import { Doctor } from "@cli/services/commands/doctor.js"
 import { runCommand } from "@cli/utils/run-command.js"
 import { Prompt } from "@effect/cli"
 import { Effect, Layer } from "effect"
-import logSymbols from "log-symbols"
 import { PackageManager } from "../package-manager.js"
 import { ProjectConfig } from "../project-config.js"
 
@@ -53,7 +52,6 @@ class Add extends Effect.Service<Add>()("Add", {
           yield* Effect.logDebug(`Selected components: ${components.join(", ")}`)
 
           const stylingLibrary = yield* projectConfig.getStylingLibrary()
-          console.log(`${logSymbols.info} Detected: ${stylingLibrary === "uniwind" ? "Uniwind" : "Nativewind"}`)
 
           const baseUrl =
             process.env.INTERNAL_ENV === "development"

@@ -7,6 +7,7 @@ interface FileCheck {
     message: string
     docs: string
   }>
+  stylingLibraries: Array<"nativewind" | "uniwind">
 }
 
 type CustomFileCheck = Omit<FileCheck, "fileNames"> & { defaultFileNames?: ReadonlyArray<string> }
@@ -22,9 +23,8 @@ interface MissingInclude {
   docs: string
 }
 
-const DEPENDENCIES = [
+const CORE_DEPENDENCIES = [
   "expo",
-  "nativewind",
   "react-native-reanimated",
   "react-native-safe-area-context",
   "tailwindcss-animate",
@@ -32,6 +32,11 @@ const DEPENDENCIES = [
   "clsx",
   "tailwind-merge"
 ]
+
+const DEPENDENCIES = {
+  nativewind: [...CORE_DEPENDENCIES, "nativewind"],
+  uniwind: [...CORE_DEPENDENCIES, "uniwind"]
+}
 
 const DEV_DEPENDENCIES = ["tailwindcss@^3.4.14"]
 
@@ -46,7 +51,8 @@ const FILE_CHECKS: Array<FileCheck> = [
         message: "jsxImportSource or nativewind/babel is missing",
         docs: "https://www.nativewind.dev/docs/getting-started/installation#3-add-the-babel-preset"
       }
-    ]
+    ],
+    stylingLibraries: ["nativewind"] as const
   },
   {
     name: "Metro Config",
@@ -63,7 +69,21 @@ const FILE_CHECKS: Array<FileCheck> = [
         message: "The 'inlineRem: 16' is missing",
         docs: "https://reactnativereusables.com/docs/installation/manual#update-the-default-inlined-rem-value"
       }
-    ]
+    ],
+    stylingLibraries: ["nativewind"] as const
+  },
+  {
+    name: "Metro Config",
+    fileNames: ["metro.config.js", "metro.config.ts"],
+    docs: "https://www.nativewind.dev/docs/getting-started/installation#4-create-or-modify-your-metroconfigjs",
+    includes: [
+      {
+        content: ["withUniwindConfig("],
+        message: "The withUniwindConfig function is missing",
+        docs: "https://docs.uniwind.dev/api/metro-config#metro-config-js"
+      }
+    ],
+    stylingLibraries: ["uniwind"] as const
   },
   {
     name: "Root Layout",
@@ -80,11 +100,12 @@ const FILE_CHECKS: Array<FileCheck> = [
         message: "The PortalHost component is missing",
         docs: "https://reactnativereusables.com/docs/installation/manual#add-the-portal-host-to-your-root-layout"
       }
-    ]
+    ],
+    stylingLibraries: ["nativewind", "uniwind"] as const
   }
 ]
 
-const DEPRECATED_FROM_LIB = [
+const DEPRECATED_FROM_LIB: Array<Omit<FileCheck, "docs" | "stylingLibraries">> = [
   {
     name: "Icons",
     fileNames: ["icons/iconWithClassName.ts"],
@@ -120,7 +141,7 @@ const DEPRECATED_FROM_LIB = [
   }
 ]
 
-const DEPRECATED_FROM_UI = [
+const DEPRECATED_FROM_UI: Array<Omit<FileCheck, "docs" | "stylingLibraries">> = [
   {
     name: "Typography",
     fileNames: ["typography.tsx"],
@@ -164,7 +185,7 @@ const CSS_VARIABLE_NAMES = [
   "radius"
 ]
 
-const CUSTOM_FILE_CHECKS = {
+const CUSTOM_FILE_CHECKS: Record<string, CustomFileCheck> = {
   tailwindConfig: {
     name: "Tailwind Config",
     defaultFileNames: ["tailwind.config.js", "tailwind.config.ts"],
@@ -180,7 +201,8 @@ const CUSTOM_FILE_CHECKS = {
         message: "At least one of the color css variables is missing",
         docs: "https://reactnativereusables.com/docs/installation/manual#configure-your-styles"
       }
-    ]
+    ],
+    stylingLibraries: ["nativewind"] as const
   },
   theme: {
     name: "Theme",
@@ -197,7 +219,8 @@ const CUSTOM_FILE_CHECKS = {
         message: "The NAV_THEME is missing",
         docs: "https://reactnativereusables.com/docs/installation/manual#configure-your-styles"
       }
-    ]
+    ],
+    stylingLibraries: ["nativewind", "uniwind"] as const
   },
   nativewindEnv: {
     name: "Nativewind Env",
@@ -208,7 +231,8 @@ const CUSTOM_FILE_CHECKS = {
         message: "The nativewind types are missing",
         docs: "https://www.nativewind.dev/docs/getting-started/installation#7-typescript-setup-optional"
       }
-    ]
+    ],
+    stylingLibraries: ["nativewind"] as const
   },
   uniwindTypes: {
     name: "Uniwind Types",
@@ -220,7 +244,8 @@ const CUSTOM_FILE_CHECKS = {
         message: "The uniwind types are missing",
         docs: "https://docs.uniwind.dev/api/metro-config#dtsfile"
       }
-    ]
+    ],
+    stylingLibraries: ["uniwind"] as const
   },
   utils: {
     name: "Utils",
@@ -232,7 +257,8 @@ const CUSTOM_FILE_CHECKS = {
         message: "The cn function is missing",
         docs: "https://reactnativereusables.com/docs/installation/manual#add-a-cn-helper"
       }
-    ]
+    ],
+    stylingLibraries: ["nativewind", "uniwind"] as const
   },
   css: {
     name: "CSS",
@@ -249,7 +275,26 @@ const CUSTOM_FILE_CHECKS = {
         message: "At least one of the color css variables is missing",
         docs: "https://reactnativereusables.com/docs/installation/manual#configure-your-styles"
       }
-    ]
+    ],
+    stylingLibraries: ["nativewind"] as const
+  },
+  uniwindCss: {
+    name: "CSS",
+    defaultFileNames: ["globals.css", "src/global.css"],
+    docs: "https://reactnativereusables.com/docs/installation/manual#configure-your-styles",
+    includes: [
+      {
+        content: ["tailwindcss", "uniwind"],
+        message: "The tailwind layer directives are missing",
+        docs: "https://reactnativereusables.com/docs/installation/manual#configure-your-styles"
+      },
+      {
+        content: CSS_VARIABLE_NAMES,
+        message: "At least one of the color css variables is missing",
+        docs: "https://reactnativereusables.com/docs/installation/manual#configure-your-styles"
+      }
+    ],
+    stylingLibraries: ["uniwind"] as const
   }
 }
 
