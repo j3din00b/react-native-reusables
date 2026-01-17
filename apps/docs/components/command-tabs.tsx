@@ -7,7 +7,7 @@ const COMMAND: Record<(typeof MANAGERS)[number], string[]> = {
   npm: ['npx'],
   bun: ['bunx', '--bun'],
   pnpm: ['pnpm', 'dlx'],
-  yarn: ['yarn'],
+  yarn: ['npx'],
   'yarn@berry': ['yarn', 'dlx'],
 };
 
