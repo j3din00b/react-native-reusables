@@ -41,9 +41,14 @@ You can now start adding components to your app.
 
 ```tsx title="index.tsx"
   import { Button } from '@/components/ui/button';
+  import { Text } from '@/components/ui/text';
 
   export default function Screen() {
-    return <Button>Click me</Button>;
+    return (
+      <Button>
+        <Text>Click me</Text>
+      </Button>
+    );
   }
 ```
 
