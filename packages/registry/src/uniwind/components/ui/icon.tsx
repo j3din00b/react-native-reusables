@@ -1,8 +1,8 @@
-import * as React from 'react';
+import { TextClassContext } from '@/registry/uniwind/components/ui/text';
 import { cn } from '@/registry/uniwind/lib/utils';
 import type { LucideIcon, LucideProps } from 'lucide-react-native';
+import * as React from 'react';
 import { withUniwind } from 'uniwind';
-import { TextClassContext } from '@/components/ui/text';
 
 type IconProps = LucideProps & {
   as: LucideIcon;
