@@ -5,6 +5,7 @@ import { ThemeProvider } from 'expo-router/react-navigation';
 import { PortalHost } from '@rn-primitives/portal';
 import { HeaderRightView } from '@showcase/components/header-right-view';
 import { useGeistFont } from '@showcase/hooks/use-geist-font';
+import { useWebColorSchemeSync } from '@showcase/hooks/use-web-color-scheme-sync';
 import { NAV_THEME } from '@showcase/lib/theme';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -30,6 +31,7 @@ export const unstable_settings = {
 export default function RootLayout() {
   const [loaded, error] = useGeistFont();
   const { colorScheme } = useColorScheme();
+  useWebColorSchemeSync();
 
   React.useEffect(() => {
     if (loaded || error) {
@@ -58,6 +60,7 @@ export default function RootLayout() {
                 );
               },
               headerRight: () => <HeaderRightView />,
+              headerShown: Platform.OS !== 'web',
             }}>
             <Stack.Screen
               name="index"
@@ -67,7 +70,6 @@ export default function RootLayout() {
                 headerLargeTitleShadowVisible: false,
                 headerShadowVisible: false,
                 headerTransparent: Platform.OS === 'ios',
-
               }}
             />
           </Stack>

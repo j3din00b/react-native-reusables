@@ -56,3 +56,12 @@
     --chart-5: 340 75% 55%;
   }
 }
+
+@layer base {
+  /* react-native-web gives Text and TextInput `font: 14px System`.
+     On web, inherit the page font (Geist) instead so all text matches. */
+  html [class*='css-text-'],
+  html [class*='css-textinput-'] {
+    font-family: inherit;
+  }
+}

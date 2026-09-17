@@ -4,7 +4,7 @@ import { View } from 'react-native';
 
 export default function ContextScreen() {
   return (
-    <View className="flex-1 items-center gap-12 p-6">
+    <View className="web:justify-center flex-1 items-center gap-12 p-6">
       <ContextMenuPreview />
     </View>
   );

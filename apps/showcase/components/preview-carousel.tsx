@@ -49,7 +49,7 @@ function PreviewCarousel({ previews, removeBottomSafeArea = false }: PreviewCaro
         snapToInterval={windowWidth}
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
-        contentContainerClassName={cn(!removeBottomSafeArea && 'pb-12 mb-safe')}
+        contentContainerClassName={cn(!removeBottomSafeArea && 'native:pb-12 mb-safe')}
       />
       <View className="mb-safe absolute bottom-0 left-0 right-0 h-12 flex-row items-center justify-center px-4">
         <View className="relative flex-row items-center justify-center gap-2">

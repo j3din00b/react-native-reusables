@@ -30,3 +30,13 @@ export const COMPONENTS = [
   { slug: 'toggle-group', name: 'Toggle Group' },
   { slug: 'tooltip', name: 'Tooltip' },
 ] as const;
+
+export const BLOCKS = [
+  { slug: 'sign-in-form', name: 'Sign In Form' },
+  { slug: 'sign-up-form', name: 'Sign Up Form' },
+  { slug: 'forgot-password-form', name: 'Forgot Password Form' },
+  { slug: 'reset-password-form', name: 'Reset Password Form' },
+  { slug: 'verify-email-form', name: 'Verify Email Form' },
+  { slug: 'social-connections', name: 'Social Connections' },
+  { slug: 'user-menu', name: 'User Menu' },
+] as const;

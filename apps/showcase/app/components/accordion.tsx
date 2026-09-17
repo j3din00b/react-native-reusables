@@ -3,7 +3,7 @@ import { View } from 'react-native';
 
 export default function AccordionScreen() {
   return (
-    <View className="items-center px-6">
+    <View className="web:flex-1 web:justify-center items-center px-6">
       <AccordionPreview />
     </View>
   );
